@@ -18,13 +18,15 @@ This project has two layers of tests: **GoogleTest unit tests** (C++) and a **Py
 From the project root inside the dev container:
 
 ```bash
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
 cmake --build build --target matching_engine_core_gtest line_matching_engine_gtest
 ```
 
 > The test binaries are placed at:
-> - `build/debug/bin/matching_engine_core_gtest`
-> - `build/debug/bin/line_matching_engine_gtest`
+> - `build/bin/matching_engine_core_gtest`
+> - `build/bin/line_matching_engine_gtest`
+>
+> In some environments, they may appear under `build/debug/bin/`.
 
 ### Run all tests with ctest
 
@@ -47,8 +49,8 @@ Test project /workspace/build
 ### Run a single test binary directly
 
 ```bash
-./build/debug/bin/matching_engine_core_gtest
-./build/debug/bin/line_matching_engine_gtest
+./build/bin/matching_engine_core_gtest
+./build/bin/line_matching_engine_gtest
 ```
 
 ### Run a specific test case
@@ -57,18 +59,28 @@ Use the `--gtest_filter` flag:
 
 ```bash
 # Run a single test
-./build/debug/bin/matching_engine_core_gtest --gtest_filter=MatchingEngineCoreTest.PricePriorityAcrossLevels
+./build/bin/matching_engine_core_gtest --gtest_filter=MatchingEngineCoreTest.PricePriorityAcrossLevels
 
 # Run all tests in one suite
-./build/debug/bin/line_matching_engine_gtest --gtest_filter=LineMatchingEngineTest.*
+./build/bin/line_matching_engine_gtest --gtest_filter=LineMatchingEngineTest.*
 ```
 
 ### List all available tests
 
 ```bash
-./build/debug/bin/matching_engine_core_gtest --gtest_list_tests
-./build/debug/bin/line_matching_engine_gtest --gtest_list_tests
+./build/bin/matching_engine_core_gtest --gtest_list_tests
+./build/bin/line_matching_engine_gtest --gtest_list_tests
 ```
+
+### If GoogleTest commands fail
+
+```bash
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+cmake --build build --target matching_engine_core_gtest line_matching_engine_gtest
+ctest --test-dir build --output-on-failure
+```
+
+If `build/bin/...` does not exist, check `build/debug/bin/...`.
 
 ---
 

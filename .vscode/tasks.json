@@ -17,12 +17,12 @@
             "problemMatcher": []
         },
         {
-            "label": "cmake: build executable_example (Debug)",
+            "label": "cmake: build matching_engine_app (Debug)",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build", "${workspaceFolder}/build",
-                "--target", "executable_example"
+                "--target", "matching_engine_app"
             ],
             "dependsOn": "cmake: configure (Debug)",
             "group": {

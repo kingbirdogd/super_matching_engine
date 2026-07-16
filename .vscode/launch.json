@@ -1,14 +1,14 @@
 {
-    // Launch gdb and break at main() of executable_example.
-    // The binary links libdynamic_example.so from build/lib64, so that
+    // Launch gdb and break at main() of matching_engine_app.
+    // The binary links matching_engine_core.so from build/lib64, so that
     // directory is added to LD_LIBRARY_PATH for the debug session.
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "gdb: executable_example",
+            "name": "gdb: matching_engine_app",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/executable_example",
+            "program": "${workspaceFolder}/build/bin/matching_engine_app",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -18,7 +18,6 @@
                     "value": "${workspaceFolder}/build/lib64"
                 }
             ],
-            "console": "internalConsole",
             "MIMode": "gdb",
             // Wrapper that strips DEBUGINFOD_* from gdb's OWN environment before
             // exec'ing /usr/bin/gdb. This is what actually stops the ~45s stall:
@@ -49,7 +48,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "cmake: build executable_example (Debug)"
+            "preLaunchTask": "cmake: build matching_engine_app (Debug)"
         }
     ]
 }

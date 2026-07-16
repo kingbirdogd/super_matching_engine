@@ -85,7 +85,7 @@ gdb build/bin/matching_engine_app
 ## Validation Status
 
 - Compile, run, and full test are validated in the Ubuntu environment defined by [Dockerfile](Dockerfile).
-- Docker development environment is fully tested on Windows and macOS.
+- Docker development environment is fully tested on Windows and macOS for both VS code development and commandline development
 
 ## Documentation Index
 

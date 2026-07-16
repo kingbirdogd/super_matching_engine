@@ -1,0 +1,15 @@
+.devcontainer/certs/*
+
+# CMake build output
+/build*/
+cmake-build-*/
+
+# super_make-style sibling build tree
+*_build/
+
+# In-source cache left by the auto-redirect bootstrap (see top-level CMakeLists)
+/CMakeCache.txt
+/CMakeFiles/
+
+.DS_Store
+

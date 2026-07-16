@@ -1,0 +1,5 @@
+set(TYPE EXE)
+set(STD c++23)
+set(DEPS matching_engine_core)
+set(VERSION 1.0.0)
+super_module()

@@ -63,48 +63,6 @@ cmake -S . -B build
 cmake -S . -B /tmp/super_cmake-build
 ```
 
-### super_make-style sibling build tree
-
-super_make places its output in a **sibling** directory next to the project,
-named `<project>_build/<project>_<config>`. For a project checked out at
-`/work/super_cmake` that means:
-
-```
-/work/super_cmake            <- source
-/work/super_cmake_build/     <- build output (sibling)
-```
-
-Reproduce that exactly by pointing `-B` at the sibling path. The pattern is
-`../<name>_build/<name>_<config>`:
-
-```bash
-# Release (super_make's default CONFIG)
-cmake -S . -B ../super_cmake_build/super_cmake_release -G Ninja
-cmake --build ../super_cmake_build/super_cmake_release
-
-# Debug
-cmake -S . -B ../super_cmake_build/super_cmake_debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build ../super_cmake_build/super_cmake_debug
-```
-
-This gives you the same on-disk shape super_make produced:
-
-```
-../super_cmake_build/super_cmake_release/bin/executable_example
-../super_cmake_build/super_cmake_release/lib64/libdynamic_example.so.0.0.1
-../super_cmake_build/super_cmake_release/symbol/libdynamic_example.so.0.0.1.sym
-```
-
-A tiny wrapper reproduces super_make's zero-argument workflow:
-
-```bash
-# build.sh — mimic `make` with a sibling release tree
-name=$(basename "$PWD")
-tree="../${name}_build/${name}_release"
-cmake -S . -B "$tree" -G Ninja
-cmake --build "$tree"
-```
-
 > Keeping build trees **out of the source directory** is the recommended CMake
 > practice: you can wipe a build tree (`rm -rf build`) without risk, and keep
 > Release and Debug trees side by side. The [.gitignore](.gitignore) already

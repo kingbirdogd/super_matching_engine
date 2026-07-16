@@ -1,11 +1,11 @@
-#include <matching_engine_core/matching_engine.hpp>
+#include <matching_engine_core/line_matching_engine.hpp>
 
 #include <exception>
 #include <iostream>
 #include <string>
 
 int main() {
-    matching_engine::MatchingEngine engine;
+    matching_engine::LineMatchingEngine engine;
 
     std::string line;
     while (std::getline(std::cin, line)) {

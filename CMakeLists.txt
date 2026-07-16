@@ -8,9 +8,14 @@ project(super_cmake
 # Make the SuperCMake module (the common.mk equivalent) available everywhere.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(SuperCMake)
+include(CTest)
 
 # Establish the default configuration and the bin/ lib64/ output tree.
 super_init()
 
 # Build the matching engine project.
 add_subdirectory(matching_engine)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

@@ -1,4 +1,10 @@
+#include <matching_engine_core/add_order_request.hpp>
+#include <matching_engine_core/cancel_order_request.hpp>
 #include <matching_engine_core/matching_engine.hpp>
+#include <matching_engine_core/output_message.hpp>
+#include <matching_engine_core/output_type.hpp>
+#include <matching_engine_core/process_result.hpp>
+#include <matching_engine_core/side.hpp>
 
 #include <algorithm>
 #include <charconv>
@@ -26,13 +32,6 @@ using Level = std::list<OrderId>;
 using BidBook = std::map<Price, Level, std::greater<Price>>;
 using AskBook = std::map<Price, Level, std::less<Price>>;
 
-struct ParsedAdd {
-    OrderId order_id{0};
-    Side side{Side::Buy};
-    Quantity quantity{0};
-    Price price{0.0L};
-};
-
 struct EngineOrder {
     OrderId id{0};
     Side side{Side::Buy};
@@ -56,16 +55,22 @@ std::string format_price_value(long double value) {
 
 }  // namespace
 
-class BookState final {
-public:
+struct MatchingEngine::Impl final {
     std::unordered_map<OrderId, EngineOrder> orders;
     BidBook bids;
     AskBook asks;
 };
 
-static BookState& state() {
-    static BookState value;
+MatchingEngine::Impl& MatchingEngine::state() {
+    static Impl value;
     return value;
+}
+
+void MatchingEngine::reset() {
+    Impl& book = state();
+    book.orders.clear();
+    book.bids.clear();
+    book.asks.clear();
 }
 
 std::string OutputMessage::to_csv() const {
@@ -87,130 +92,25 @@ std::string OutputMessage::to_csv() const {
     return out.str();
 }
 
-std::string_view MatchingEngine::trim(std::string_view value) {
-    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.front())) != 0) {
-        value.remove_prefix(1);
-    }
-    while (!value.empty() && std::isspace(static_cast<unsigned char>(value.back())) != 0) {
-        value.remove_suffix(1);
-    }
-    return value;
-}
-
-std::vector<std::string_view> MatchingEngine::split_csv(std::string_view line) {
-    std::vector<std::string_view> fields;
-    std::size_t start = 0;
-    while (start <= line.size()) {
-        const std::size_t comma = line.find(',', start);
-        if (comma == std::string_view::npos) {
-            fields.push_back(trim(line.substr(start)));
-            break;
-        }
-        fields.push_back(trim(line.substr(start, comma - start)));
-        start = comma + 1;
-    }
-    return fields;
-}
-
-bool MatchingEngine::parse_u64(std::string_view text, std::uint64_t& value) {
-    text = trim(text);
-    if (text.empty()) {
-        return false;
-    }
-    const char* begin = text.data();
-    const char* end = text.data() + text.size();
-    std::uint64_t parsed = 0;
-    const auto [ptr, ec] = std::from_chars(begin, end, parsed);
-    if (ec != std::errc() || ptr != end) {
-        return false;
-    }
-    value = parsed;
-    return true;
-}
-
-bool MatchingEngine::parse_price(std::string_view text, long double& value) {
-    text = trim(text);
-    if (text.empty()) {
-        return false;
-    }
-
-    std::string owned{text};
-    char* end = nullptr;
-    const long double parsed = std::strtold(owned.c_str(), &end);
-    if (end == owned.c_str() || *end != '\0' || !std::isfinite(parsed)) {
-        return false;
-    }
-
-    value = parsed;
-    return true;
-}
-
-ProcessResult MatchingEngine::process_line(std::string_view raw_line) {
+ProcessResult MatchingEngine::handle_add_request(const AddOrderRequest& add) {
     ProcessResult result;
 
-    const std::size_t comment_pos = raw_line.find("//");
-    const std::string_view no_comment =
-        (comment_pos == std::string_view::npos) ? raw_line : raw_line.substr(0, comment_pos);
-    const std::string_view line = trim(no_comment);
-
-    if (line.empty()) {
-        return result;
-    }
-
-    const auto fields = split_csv(line);
-    if (fields.empty() || fields[0].empty()) {
-        result.errors.emplace_back("Unknown message type: " + std::string(line));
-        return result;
-    }
-
-    std::uint64_t msg_type = 0;
-    if (!parse_u64(fields[0], msg_type)) {
-        result.errors.emplace_back("Unknown message type: " + std::string(fields[0]));
-        return result;
-    }
-
-    if (msg_type == 0U) {
-        return handle_add_request(fields);
-    }
-    if (msg_type == 1U) {
-        return handle_cancel_request(fields);
-    }
-
-    result.errors.emplace_back("Unknown message type: " + std::string(fields[0]));
-    return result;
-}
-
-ProcessResult MatchingEngine::handle_add_request(const std::vector<std::string_view>& fields) {
-    ProcessResult result;
-    ParsedAdd add{};
-    if (fields.size() != 5U) {
-        result.errors.emplace_back("AddOrderRequest expects 5 fields");
-        return result;
-    }
-
-    if (!parse_u64(fields[1], add.order_id) || add.order_id == 0U) {
+    if (add.order_id == 0U) {
         result.errors.emplace_back("Invalid AddOrderRequest orderid");
         return result;
     }
 
-    std::uint64_t side_raw = 0;
-    if (!parse_u64(fields[2], side_raw) || (side_raw != 0U && side_raw != 1U)) {
-        result.errors.emplace_back("Invalid AddOrderRequest side");
-        return result;
-    }
-    add.side = (side_raw == 0U) ? Side::Buy : Side::Sell;
-
-    if (!parse_u64(fields[3], add.quantity) || add.quantity == 0U) {
+    if (add.quantity == 0U) {
         result.errors.emplace_back("Invalid AddOrderRequest quantity");
         return result;
     }
 
-    if (!parse_price(fields[4], add.price) || add.price <= 0.0L) {
+    if (!std::isfinite(add.price) || add.price <= 0.0L) {
         result.errors.emplace_back("Invalid AddOrderRequest price");
         return result;
     }
 
-    BookState& book = state();
+    Impl& book = state();
     if (book.orders.contains(add.order_id)) {
         result.errors.emplace_back("Duplicate orderid: " + std::to_string(add.order_id));
         return result;
@@ -348,24 +248,18 @@ ProcessResult MatchingEngine::handle_add_request(const std::vector<std::string_v
     return result;
 }
 
-ProcessResult MatchingEngine::handle_cancel_request(const std::vector<std::string_view>& fields) {
+ProcessResult MatchingEngine::handle_cancel_request(const CancelOrderRequest& cancel) {
     ProcessResult result;
 
-    if (fields.size() != 2U) {
-        result.errors.emplace_back("CancelOrderRequest expects 2 fields");
-        return result;
-    }
-
-    std::uint64_t order_id = 0;
-    if (!parse_u64(fields[1], order_id) || order_id == 0U) {
+    if (cancel.order_id == 0U) {
         result.errors.emplace_back("Invalid CancelOrderRequest orderid");
         return result;
     }
 
-    BookState& book = state();
-    auto order_it = book.orders.find(order_id);
+    Impl& book = state();
+    auto order_it = book.orders.find(cancel.order_id);
     if (order_it == book.orders.end()) {
-        result.errors.emplace_back("Unknown orderid for cancel: " + std::to_string(order_id));
+        result.errors.emplace_back("Unknown orderid for cancel: " + std::to_string(cancel.order_id));
         return result;
     }
 

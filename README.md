@@ -74,6 +74,7 @@ bash QUICKSTART.sh
 ## Documentation Index
 
 - [README.md](README.md) — Project summary and quick usage
+- [VSCODE_DEVCONTAINER_SETUP.md](VSCODE_DEVCONTAINER_SETUP.md) — **How to set up and launch the development environment in VS Code**
 - [BUILD_MATCHING_ENGINE.md](BUILD_MATCHING_ENGINE.md) — Build and environment notes
 - [MATCHING_ENGINE_INDEX.md](MATCHING_ENGINE_INDEX.md) — Documentation index
 - [MATCHING_ENGINE_IMPLEMENTATION.md](MATCHING_ENGINE_IMPLEMENTATION.md) — Design and implementation details

@@ -31,8 +31,8 @@ echo "   3,200                   # Seller fully filled"
 echo "   4,100,2                 # Buyer partially filled (2 remaining)"
 echo
 
-echo "   0,100,0,5,100" | ./build/debug/bin/matching_engine_app
-echo "   0,200,1,3,99" | ./build/debug/bin/matching_engine_app
+echo "   0,100,0,5,100
+    0,200,1,3,99"  | ./build/debug/bin/matching_engine_app
 
 echo
 echo "✓ Matching engine is ready!"

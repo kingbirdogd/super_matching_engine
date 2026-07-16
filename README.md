@@ -34,8 +34,9 @@ bash QUICKSTART.sh
 
 ## Project Structure
 
-- [matching_engine/matching_engine_core/](matching_engine/matching_engine_core) — Core matching engine library
+- [matching_engine/matching_engine_core/](matching_engine/matching_engine_core) — Core matching engine library (`MatchingEngine`, `LineMatchingEngine`)
 - [matching_engine/matching_engine_app/](matching_engine/matching_engine_app) — Application and CLI interface
+- [tests/](tests) — GoogleTest unit tests (`MatchingEngineCoreTest`, `LineMatchingEngineTest`)
 - [Matching_Engine_Requirement.md](Matching_Engine_Requirement.md) — Full specification and requirements
 - [MATCHING_ENGINE_IMPLEMENTATION.md](MATCHING_ENGINE_IMPLEMENTATION.md) — Implementation details
 

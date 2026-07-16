@@ -61,12 +61,22 @@ You can also run the guided script:
 bash QUICKSTART.sh
 ```
 
-## Debug (VS Code)
+## Compile and Debug (VS Code)
 
 - Press F5 and choose `gdb: matching_engine_app`.
 - The debugger launches [matching_engine/matching_engine_app/src/main.cpp](matching_engine/matching_engine_app/src/main.cpp).
 - Debug settings are in [.vscode/launch.json](.vscode/launch.json).
 
+## Compile and Debug (Commandline)
+```bash
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build 
+gdb build/bin/matching_engine_app
+```
+
+- Press F5 and choose `gdb: matching_engine_app`.
+- The debugger launches [matching_engine/matching_engine_app/src/main.cpp](matching_engine/matching_engine_app/src/main.cpp).
+- Debug settings are in [.vscode/launch.json](.vscode/launch.json).
 ## Input and Output
 
 - Input format and matching rules: [Matching_Engine_Requirement.md](Matching_Engine_Requirement.md)

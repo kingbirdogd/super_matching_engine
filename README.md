@@ -75,6 +75,7 @@ bash QUICKSTART.sh
 ## Documentation Index
 
 - [README.md](README.md) — Project summary and quick usage
+- [DEVELOPMENT_COMMAND_LINE.md](DEVELOPMENT_COMMAND_LINE.md) — **Command-line development on Linux-style systems and Windows (`dev_shell.sh` / `dev_shell.ps1`)**
 - [VSCODE_DEVCONTAINER_SETUP.md](VSCODE_DEVCONTAINER_SETUP.md) — **How to set up and launch the development environment in VS Code**
 - [RUNNING_TESTS.md](RUNNING_TESTS.md) — **How to run GoogleTest unit tests and the Python integration test**
 - [BUILD_MATCHING_ENGINE.md](BUILD_MATCHING_ENGINE.md) — Build and environment notes

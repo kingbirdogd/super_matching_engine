@@ -1,84 +1,43 @@
-# super_cmake
+# Matching Engine
 
-A CMake re-implementation of [kingbirdogd/super_make](https://github.com/kingbirdogd/super_make)'s
-`common.mk`. It keeps super_make's *convention-over-configuration* model — every
-module lives in its own directory, declares a handful of variables, and calls a
-single command — while delegating the heavy lifting (transitive dependencies,
-sonames, symbol stripping) to native CMake.
+A high-performance trading order matching engine that processes and executes trades based on matching buy and sell orders on an exchange.
 
-The original Makefile idiom
+## Overview
 
-```make
-TYPE:=SHARE
-DEPS:=static_example
-include $(PROJECT_HOME)/common.mk
-```
+This project implements a matching engine that:
+- Processes order requests (add/remove operations)
+- Matches buy and sell orders based on price and time priority
+- Executes trades when buy price ≥ sell price
+- Maintains an order book with proper priority resolution
+- Outputs trade execution details and order state changes
 
-becomes
+## Features
 
-```cmake
-set(TYPE SHARE)
-set(DEPS static_example)
-super_module()
-```
+- **Price-Time Priority Matching**: Orders are matched at the best price first, with earliest orders matched first at the same price
+- **Aggressive Order Handling**: Incoming orders that cross the spread are matched against resting orders in priority order
+- **Order Book Management**: Maintains separate buy (descending price) and sell (ascending price) books
+- **Partial Fill Support**: Orders can be partially filled with remaining quantity resting in the book
 
----
-
-## Table of contents
-
-- [Requirements](#requirements)
-- [Quick start](#quick-start)
-- [Controlling the build tree](#controlling-the-build-tree)
-  - [super_make-style sibling build tree](#super_make-style-sibling-build-tree)
-- [Build configuration (Release / Debug)](#build-configuration-release--debug)
-- [Output layout](#output-layout)
-- [Writing a module](#writing-a-module)
-  - [Module variables](#module-variables)
-  - [Module directory layout](#module-directory-layout)
-  - [Module TYPEs](#module-types)
-- [Adding a new module](#adding-a-new-module)
-- [The bundled example](#the-bundled-example)
-- [Feature mapping to common.mk](#feature-mapping-to-commonmk)
-
----
-
-## Requirements
-
-- CMake ≥ 3.20
-- A C/C++ toolchain (GCC or Clang)
-- [Ninja](https://ninja-build.org/) (recommended) or GNU Make
-- `pkg-config` — only for modules that use `DEP_PKGS`
-- `python3-dev` — only to build the `third_party_example` Python module
-
-All of these are preinstalled in the provided dev container (see the
-[Dockerfile](Dockerfile)).
-
----
-
-## Quick start
+## Quick Start
 
 ```bash
-# Configure (Release by default, mirroring super_make's CONFIG=release)
+# Build the matching engine
 cmake -S . -B build -G Ninja
-
-# Build everything
 cmake --build build
 
-# Run the example executable (its shared dependency lives in build/lib64)
-LD_LIBRARY_PATH=build/lib64 ./build/bin/executable_example
-# -> static_test
-# -> dynamic_test
+# Run the matching engine
+LD_LIBRARY_PATH=build/lib64 ./build/bin/matching_engine_app
 
-# Try the pybind11 Python module (requires python3-dev)
-PYTHONPATH=build/lib64 python3 example/third_party_example/py_example.py
-# -> 5
+# See example usage
+bash QUICKSTART.sh
 ```
 
-To build a single module and its dependencies, target it by name:
+## Project Structure
 
-```bash
-cmake --build build --target dynamic_example
-```
+- [matching_engine/matching_engine_core/](matching_engine/matching_engine_core) — Core matching engine library
+- [matching_engine/matching_engine_app/](matching_engine/matching_engine_app) — Application and CLI interface
+- [Matching_Engine_Requirement.md](Matching_Engine_Requirement.md) — Full specification and requirements
+- [MATCHING_ENGINE_IMPLEMENTATION.md](MATCHING_ENGINE_IMPLEMENTATION.md) — Implementation details
 
 ---
 

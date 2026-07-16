@@ -82,6 +82,11 @@ gdb build/bin/matching_engine_app
 - Input format and matching rules: [Matching_Engine_Requirement.md](Matching_Engine_Requirement.md)
 - Sample app behavior and test data: [matching_engine/matching_engine_app/README.md](matching_engine/matching_engine_app/README.md)
 
+## Validation Status
+
+- Compile, run, and full test are validated in the Ubuntu environment defined by [Dockerfile](Dockerfile).
+- Docker development environment is fully tested on Windows and macOS.
+
 ## Documentation Index
 
 - [README.md](README.md) — Project summary and quick usage

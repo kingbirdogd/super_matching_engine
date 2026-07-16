@@ -7,13 +7,21 @@ A **modern C++23 matching engine** that processes buy/sell order requests and ex
 ### Project Structure
 
 ```
-example/
-├── matching_engine_core/              # Static library (C++23, C++2b)
+matching_engine/
+├── matching_engine_core/              # Static library (C++23)
 │   ├── CMakeLists.txt
 │   ├── inc/matching_engine_core/
-│   │   └── matching_engine.hpp        # Public API
+│   │   ├── side.hpp                   # Side enum
+│   │   ├── output_type.hpp            # OutputType enum
+│   │   ├── output_message.hpp         # OutputMessage struct
+│   │   ├── process_result.hpp         # ProcessResult struct
+│   │   ├── add_order_request.hpp      # AddOrderRequest struct
+│   │   ├── cancel_order_request.hpp   # CancelOrderRequest struct
+│   │   ├── matching_engine.hpp        # MatchingEngine class
+│   │   └── line_matching_engine.hpp   # LineMatchingEngine class
 │   └── src/
-│       └── matching_engine.cpp        # Engine implementation
+│       ├── matching_engine.cpp        # Engine implementation
+│       └── line_matching_engine.cpp   # CSV line parsing layer
 │
 └── matching_engine_app/               # Executable application
     ├── CMakeLists.txt
@@ -24,7 +32,12 @@ example/
         ├── sample_input.txt           # Example dataset from spec
         ├── expected_stdout.txt         # Expected trades/fills
         ├── expected_stderr.txt         # Expected error messages
-        └── test.py                    # Python test runner
+        └── test.py                    # Python integration test runner
+
+tests/                                 # GoogleTest unit tests
+├── CMakeLists.txt
+├── matching_engine_core_test.cpp      # Tests for MatchingEngine
+└── line_matching_engine_test.cpp      # Tests for LineMatchingEngine
 ```
 
 ### Key Features
@@ -179,18 +192,28 @@ Unknown message type: BADMESSAGE
 
 ### Testing
 
-The project includes:
-- **sample_input.txt**: Example dataset from spec (10 orders + 1 bad message + 1 match)
-- **expected_stdout.txt**: Correct output (6 messages)
-- **expected_stderr.txt**: Error message for bad input
-- **test.py**: Automated test runner (compares actual vs. expected output)
+The project includes two layers of testing:
 
-Run tests:
+**GoogleTest unit tests** (C++):
 ```bash
-python3 example/matching_engine_app/data/test.py
+cmake --build build --target matching_engine_core_gtest line_matching_engine_gtest
+ctest --test-dir build --output-on-failure
 ```
 
-All tests pass ✓.
+| Suite | What it tests |
+| --- | --- |
+| `MatchingEngineCoreTest` | `MatchingEngine` typed API — validation, matching, priority, cancel |
+| `LineMatchingEngineTest` | `LineMatchingEngine` CSV parsing — routing, format errors, line flow |
+
+**Python integration test**:
+```bash
+python3 matching_engine/matching_engine_app/data/test.py
+```
+- **sample_input.txt**: Example dataset from spec (10 orders + 1 bad message)
+- **expected_stdout.txt**: Correct output (6 messages)
+- **expected_stderr.txt**: Error message for bad input
+
+All tests pass ✓. See [RUNNING_TESTS.md](RUNNING_TESTS.md) for full test documentation.
 
 ### Error Handling
 
@@ -222,16 +245,20 @@ No input causes a crash.
 | [matching_engine_app/data/sample_input.txt](matching_engine/matching_engine_app/data/sample_input.txt) | Example input from spec |
 | [matching_engine_app/data/expected_stdout.txt](matching_engine/matching_engine_app/data/expected_stdout.txt) | Expected output |
 | [matching_engine_app/data/expected_stderr.txt](matching_engine/matching_engine_app/data/expected_stderr.txt) | Expected errors |
-| [matching_engine_app/data/test.py](matching_engine/matching_engine_app/data/test.py) | Test runner |
+| [matching_engine_app/data/test.py](matching_engine/matching_engine_app/data/test.py) | Python integration test runner |
+| [tests/matching_engine_core_test.cpp](tests/matching_engine_core_test.cpp) | GoogleTest suite for `MatchingEngine` |
+| [tests/line_matching_engine_test.cpp](tests/line_matching_engine_test.cpp) | GoogleTest suite for `LineMatchingEngine` |
+| [tests/CMakeLists.txt](tests/CMakeLists.txt) | GoogleTest build config |
 | [Matching_Engine_Requirement.md](Matching_Engine_Requirement.md) | Original specification |
 | [MATCHING_ENGINE_IMPLEMENTATION.md](MATCHING_ENGINE_IMPLEMENTATION.md) | Implementation notes |
+| [RUNNING_TESTS.md](RUNNING_TESTS.md) | How to run all tests |
 
 ### Next Steps
 
-1. **Build**: `cmake -S . -B build -G Ninja && cmake --build build --target matching_engine_app`
-2. **Test**: `python3 example/matching_engine_app/data/test.py`
-3. **Read docs**: [example/matching_engine_app/README.md](example/matching_engine_app/README.md)
-4. **Add more test cases** if needed (format: CSV lines in `data/test.py`)
+1. **Build**: `cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug && cmake --build build --target matching_engine_app`
+2. **Run unit tests**: `ctest --test-dir build --output-on-failure`
+3. **Run integration test**: `python3 matching_engine/matching_engine_app/data/test.py`
+4. **Read docs**: [matching_engine/matching_engine_app/README.md](matching_engine/matching_engine_app/README.md)
 5. **Extend** for multi-symbol support if required (add symbol field to messages)
 
 ---

@@ -19,9 +19,17 @@ A modern C++23 matching engine matching buy and sell orders against a centralize
 
 ### Core Library
 
-- [matching_engine_core/CMakeLists.txt](matching_engine_core/CMakeLists.txt) — C++23 static library build config
-- [matching_engine_core/inc/matching_engine_core/matching_engine.hpp](matching_engine_core/inc/matching_engine_core/matching_engine.hpp) — public header
-- [matching_engine_core/src/matching_engine.cpp](matching_engine_core/src/matching_engine.cpp) — implementation
+- [matching_engine_core/CMakeLists.txt](matching_engine/matching_engine_core/CMakeLists.txt) — C++23 static library build config
+- [matching_engine_core/inc/matching_engine_core/side.hpp](matching_engine/matching_engine_core/inc/matching_engine_core/side.hpp) — `Side` enum
+- [matching_engine_core/inc/matching_engine_core/output_type.hpp](matching_engine/matching_engine_core/inc/matching_engine_core/output_type.hpp) — `OutputType` enum
+- [matching_engine_core/inc/matching_engine_core/output_message.hpp](matching_engine/matching_engine_core/inc/matching_engine_core/output_message.hpp) — `OutputMessage` struct
+- [matching_engine_core/inc/matching_engine_core/process_result.hpp](matching_engine/matching_engine_core/inc/matching_engine_core/process_result.hpp) — `ProcessResult` struct
+- [matching_engine_core/inc/matching_engine_core/add_order_request.hpp](matching_engine/matching_engine_core/inc/matching_engine_core/add_order_request.hpp) — `AddOrderRequest` struct
+- [matching_engine_core/inc/matching_engine_core/cancel_order_request.hpp](matching_engine/matching_engine_core/inc/matching_engine_core/cancel_order_request.hpp) — `CancelOrderRequest` struct
+- [matching_engine_core/inc/matching_engine_core/matching_engine.hpp](matching_engine/matching_engine_core/inc/matching_engine_core/matching_engine.hpp) — `MatchingEngine` class
+- [matching_engine_core/inc/matching_engine_core/line_matching_engine.hpp](matching_engine/matching_engine_core/inc/matching_engine_core/line_matching_engine.hpp) — `LineMatchingEngine` class
+- [matching_engine_core/src/matching_engine.cpp](matching_engine/matching_engine_core/src/matching_engine.cpp) — `MatchingEngine` implementation
+- [matching_engine_core/src/line_matching_engine.cpp](matching_engine/matching_engine_core/src/line_matching_engine.cpp) — `LineMatchingEngine` CSV parsing
 
 ### Application
 
@@ -31,10 +39,16 @@ A modern C++23 matching engine matching buy and sell orders against a centralize
 
 ### Test Data
 
-- [matching_engine_app/data/sample_input.txt](matching_engine_app/data/sample_input.txt) — example from spec
-- [matching_engine_app/data/expected_stdout.txt](matching_engine_app/data/expected_stdout.txt) — expected trades/fills
-- [matching_engine_app/data/expected_stderr.txt](matching_engine_app/data/expected_stderr.txt) — expected errors
-- [matching_engine_app/data/test.py](matching_engine_app/data/test.py) — test runner
+- [matching_engine_app/data/sample_input.txt](matching_engine/matching_engine_app/data/sample_input.txt) — example from spec
+- [matching_engine_app/data/expected_stdout.txt](matching_engine/matching_engine_app/data/expected_stdout.txt) — expected trades/fills
+- [matching_engine_app/data/expected_stderr.txt](matching_engine/matching_engine_app/data/expected_stderr.txt) — expected errors
+- [matching_engine_app/data/test.py](matching_engine/matching_engine_app/data/test.py) — Python integration test runner
+
+### GoogleTest Suites
+
+- [tests/matching_engine_core_test.cpp](tests/matching_engine_core_test.cpp) — unit tests for `MatchingEngine` typed API
+- [tests/line_matching_engine_test.cpp](tests/line_matching_engine_test.cpp) — unit tests for `LineMatchingEngine` CSV parsing
+- [tests/CMakeLists.txt](tests/CMakeLists.txt) — GoogleTest build configuration
 
 ## Building
 
@@ -51,10 +65,17 @@ Executable: `./build/debug/bin/matching_engine_app`
 ./build/debug/bin/matching_engine_app < input.txt
 ```
 
-Test:
+Run unit tests:
+```bash
+ctest --test-dir build --output-on-failure
+```
+
+Run Python integration test:
 ```bash
 python3 matching_engine/matching_engine_app/data/test.py
 ```
+
+See [RUNNING_TESTS.md](RUNNING_TESTS.md) for full details.
 
 ## Matching Algorithm
 

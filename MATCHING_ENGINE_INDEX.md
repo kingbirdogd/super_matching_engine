@@ -4,8 +4,10 @@
 
 - **Implementation**: [matching_engine/matching_engine_core/](matching_engine/matching_engine_core/) (static library)
 - **Application**: [matching_engine/matching_engine_app/](matching_engine/matching_engine_app/) (executable + tests)
+- **GoogleTest suites**: [tests/](tests/)
 - **Specification**: [Matching_Engine_Requirement.md](Matching_Engine_Requirement.md)
 - **Build Guide**: [BUILD_MATCHING_ENGINE.md](BUILD_MATCHING_ENGINE.md)
+- **Test Guide**: [RUNNING_TESTS.md](RUNNING_TESTS.md)
 - **Full Docs**: [matching_engine/matching_engine_app/README.md](matching_engine/matching_engine_app/README.md)
 - **Quick Start**: [QUICKSTART.sh](QUICKSTART.sh)
 
@@ -38,10 +40,14 @@ Or use the quick-start script:
 ### 2. Run Tests
 
 ```bash
+# GoogleTest unit tests (13 tests)
+ctest --test-dir build --output-on-failure
+
+# Python integration test
 python3 matching_engine/matching_engine_app/data/test.py
 ```
 
-Expected: `✓ Sample from spec` → all tests pass
+Expected: `100% tests passed out of 13` and `✓ Sample from spec`
 
 ### 3. Try It Out
 
@@ -67,9 +73,17 @@ workspace/
 │   ├── matching_engine_core/          ← Static library
 │   │   ├── CMakeLists.txt
 │   │   ├── inc/matching_engine_core/
-│   │   │   └── matching_engine.hpp
+│   │   │   ├── side.hpp
+│   │   │   ├── output_type.hpp
+│   │   │   ├── output_message.hpp
+│   │   │   ├── process_result.hpp
+│   │   │   ├── add_order_request.hpp
+│   │   │   ├── cancel_order_request.hpp
+│   │   │   ├── matching_engine.hpp
+│   │   │   └── line_matching_engine.hpp
 │   │   └── src/
-│   │       └── matching_engine.cpp
+│   │       ├── matching_engine.cpp
+│   │       └── line_matching_engine.cpp
 │   │
 │   └── matching_engine_app/           ← Executable application
 │       ├── CMakeLists.txt
@@ -81,9 +95,15 @@ workspace/
 │           ├── expected_stderr.txt
 │           └── test.py
 │
+├── tests/                             ← GoogleTest unit tests
+│   ├── CMakeLists.txt
+│   ├── matching_engine_core_test.cpp
+│   └── line_matching_engine_test.cpp
+│
 ├── Matching_Engine_Requirement.md     ← Original specification
 ├── BUILD_MATCHING_ENGINE.md           ← Full implementation summary
 ├── MATCHING_ENGINE_IMPLEMENTATION.md  ← Technical details
+├── RUNNING_TESTS.md                   ← How to run all tests
 └── QUICKSTART.sh                      ← One-command setup
 ```
 
@@ -162,6 +182,8 @@ No input will cause the program to crash.
 | --- | --- |
 | [Matching_Engine_Requirement.md](Matching_Engine_Requirement.md) | Full specification (logic, messages, example) |
 | [BUILD_MATCHING_ENGINE.md](BUILD_MATCHING_ENGINE.md) | Implementation summary, performance analysis, production ideas |
+| [RUNNING_TESTS.md](RUNNING_TESTS.md) | How to run GoogleTest and Python integration tests |
+| [VSCODE_DEVCONTAINER_SETUP.md](VSCODE_DEVCONTAINER_SETUP.md) | How to set up and debug in VS Code |
 | [matching_engine/matching_engine_app/README.md](matching_engine/matching_engine_app/README.md) | Build instructions, run examples, format details, performance table |
 
 ## Performance
@@ -183,13 +205,32 @@ Typical book depth: 10–100 levels → very fast.
 
 ## Testing
 
-The project includes:
+The project includes two layers of tests:
+
+**GoogleTest unit tests** (`tests/`):
+
+| Suite | Binary | Tests |
+| --- | --- | --- |
+| `MatchingEngineCoreTest` | `matching_engine_core_gtest` | Typed API validation, matching, priority, cancel |
+| `LineMatchingEngineTest` | `line_matching_engine_gtest` | CSV parsing, routing, format error messages |
+
+```bash
+ctest --test-dir build --output-on-failure
+# 100% tests passed out of 13
+```
+
+**Python integration test**:
 - **sample_input.txt**: 10 order messages + 1 bad message from the specification
 - **expected_stdout.txt**: Correct output (6 trade/fill messages)
 - **expected_stderr.txt**: Error message for bad input
 - **test.py**: Automated test runner
 
-All tests pass ✓.
+```bash
+python3 matching_engine/matching_engine_app/data/test.py
+# ✓ Sample from spec
+```
+
+All tests pass ✓. See [RUNNING_TESTS.md](RUNNING_TESTS.md) for detailed instructions.
 
 ## Build System
 

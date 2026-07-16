@@ -75,8 +75,20 @@ bash QUICKSTART.sh
 
 - [README.md](README.md) — Project summary and quick usage
 - [VSCODE_DEVCONTAINER_SETUP.md](VSCODE_DEVCONTAINER_SETUP.md) — **How to set up and launch the development environment in VS Code**
+- [RUNNING_TESTS.md](RUNNING_TESTS.md) — **How to run GoogleTest unit tests and the Python integration test**
 - [BUILD_MATCHING_ENGINE.md](BUILD_MATCHING_ENGINE.md) — Build and environment notes
 - [MATCHING_ENGINE_INDEX.md](MATCHING_ENGINE_INDEX.md) — Documentation index
 - [MATCHING_ENGINE_IMPLEMENTATION.md](MATCHING_ENGINE_IMPLEMENTATION.md) — Design and implementation details
 - [Matching_Engine_Requirement.md](Matching_Engine_Requirement.md) — Functional requirements and examples
+- [matching_engine/matching_engine_app/README.md](matching_engine/matching_engine_app/README.md) — App-specific usage and examples
+
+---
+
+## References
+
+This project is based on and inspired by the following open-source repositories by [@kingbirdogd](https://github.com/kingbirdogd):
+
+- [kingbirdogd/super_make](https://github.com/kingbirdogd/super_make) — Original convention-over-configuration Makefile system
+- [kingbirdogd/super_cmake](https://github.com/kingbirdogd/super_cmake) — CMake port of super_make (`common.mk`)
+- [kingbirdogd/matching_sample](https://github.com/kingbirdogd/matching_sample) — Matching engine sample and specification
 - [matching_engine/matching_engine_app/README.md](matching_engine/matching_engine_app/README.md) — App-specific usage and examples

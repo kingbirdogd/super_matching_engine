@@ -7,9 +7,17 @@ matching_engine/
 ├── matching_engine_core/          # Static library (C++23)
 │   ├── CMakeLists.txt
 │   ├── inc/matching_engine_core/
-│   │   └── matching_engine.hpp
+│   │   ├── side.hpp
+│   │   ├── output_type.hpp
+│   │   ├── output_message.hpp
+│   │   ├── process_result.hpp
+│   │   ├── add_order_request.hpp
+│   │   ├── cancel_order_request.hpp
+│   │   ├── matching_engine.hpp
+│   │   └── line_matching_engine.hpp
 │   └── src/
-│       └── matching_engine.cpp
+│       ├── matching_engine.cpp
+│       └── line_matching_engine.cpp
 ├── matching_engine_app/           # Executable application
 │   ├── CMakeLists.txt
 │   ├── src/
@@ -18,7 +26,11 @@ matching_engine/
 │       ├── sample_input.txt       # Example input from spec
 │       ├── expected_stdout.txt     # Expected output
 │       ├── expected_stderr.txt     # Expected error messages
-│       └── test.py                # Test runner
+│       └── test.py                # Python integration test runner
+tests/                             # GoogleTest unit tests
+├── CMakeLists.txt
+├── matching_engine_core_test.cpp  # Tests for MatchingEngine
+└── line_matching_engine_test.cpp  # Tests for LineMatchingEngine
 ```
 
 ## Building
@@ -67,12 +79,25 @@ Unknown message type: BADMESSAGE
 
 ## Testing
 
-Run the provided test suite:
+### GoogleTest unit tests
 
 ```bash
-cd /workspace
-python3 example/matching_engine_app/data/test.py
+cmake --build build --target matching_engine_core_gtest line_matching_engine_gtest
+ctest --test-dir build --output-on-failure
 ```
+
+| Suite | What it tests |
+| --- | --- |
+| `MatchingEngineCoreTest` | `MatchingEngine` typed API — validation, matching, price/time priority, cancel |
+| `LineMatchingEngineTest` | `LineMatchingEngine` CSV parsing — routing, format errors, comments |
+
+### Python integration test
+
+```bash
+python3 matching_engine/matching_engine_app/data/test.py
+```
+
+See [RUNNING_TESTS.md](../../RUNNING_TESTS.md) for full test documentation.
 
 ## Input Format
 

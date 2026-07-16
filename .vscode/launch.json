@@ -1,0 +1,55 @@
+{
+    // Launch gdb and break at main() of executable_example.
+    // The binary links libdynamic_example.so from build/lib64, so that
+    // directory is added to LD_LIBRARY_PATH for the debug session.
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "gdb: executable_example",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/executable_example",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "${workspaceFolder}/build/lib64"
+                }
+            ],
+            "console": "internalConsole",
+            "MIMode": "gdb",
+            // Wrapper that strips DEBUGINFOD_* from gdb's OWN environment before
+            // exec'ing /usr/bin/gdb. This is what actually stops the ~45s stall:
+            // cpptools auto-issues `set debuginfod enabled on` mid-launch (which
+            // overrides any setupCommand), and launch.json "environment" only sets
+            // the debuggee's env, not gdb's. With no URL in gdb's env there is
+            // nothing to query. See the script for the full explanation.
+            "miDebuggerPath": "${workspaceFolder}/.vscode/gdb-nodebuginfod.sh",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Don't launch the inferior via a shell (avoids container 'Failed to set controlling terminal: Operation not permitted' warning)",
+                    "text": "-gdb-set startup-with-shell off",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Break in main on start",
+                    "text": "-break-insert main",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Don't try to disable ASLR (avoids container 'Operation not permitted' warning)",
+                    "text": "-gdb-set disable-randomization off",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "cmake: build executable_example (Debug)"
+        }
+    ]
+}

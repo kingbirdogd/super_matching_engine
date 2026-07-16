@@ -1,0 +1,37 @@
+{
+    // Build tasks used by the debugger (see .vscode/launch.json).
+    // A Debug configuration is used so symbols are present and NOT stripped
+    // (super_cmake only strips artifacts in Release builds).
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cmake: configure (Debug)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-S", "${workspaceFolder}",
+                "-B", "${workspaceFolder}/build",
+                "-G", "Ninja",
+                "-DCMAKE_BUILD_TYPE=Debug"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "cmake: build executable_example (Debug)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build", "${workspaceFolder}/build",
+                "--target", "executable_example"
+            ],
+            "dependsOn": "cmake: configure (Debug)",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}

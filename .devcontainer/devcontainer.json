@@ -1,0 +1,91 @@
+{
+    // Dev Container for modern C++ development.
+    // Docs: https://containers.dev/implementors/json_reference/
+    "name": "super_cmake C++ Dev",
+
+    // Build from the Dockerfile at the repo root using Docker Desktop.
+    "build": {
+        "context": "..",
+        "dockerfile": "../Dockerfile"
+    },
+
+    // Runs on the HOST before the image is built. Each script:
+    // 1) Ensures optional bind-mount sources exist so `docker run` won't fail
+    //    on fresh machines (missing ~/.gitconfig, ~/.claude, ~/.claude.json).
+    // 2) Exports host corporate/proxy root CAs into .devcontainer/certs/ so
+    //    Dockerfile `COPY` has input files.
+    //
+    // OS dispatch without depending on host `node`: initializeCommand runs under
+    // cmd.exe on Windows and /bin/sh on macOS/Linux. `ver` is a cmd built-in that
+    // does not exist on Unix, so it selects the branch: Windows -> export-certs.ps1,
+    // macOS/Linux -> export-certs.sh. (The cosmetic `ver: not found` line on Unix
+    // is harmless; a `>nul` redirect is intentionally omitted so Unix doesn't
+    // create a stray `nul` file in the repo.)
+    "initializeCommand": "ver && powershell -NoProfile -ExecutionPolicy Bypass -File .devcontainer/export-certs.ps1 || bash .devcontainer/export-certs.sh",
+
+    // Mount the workspace to match the Dockerfile's WORKDIR.
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+    // Allow gdb to ptrace and disable ASLR inside the container (otherwise gdb
+    // warns: "Error disabling address space randomization: Operation not permitted").
+    "runArgs": [
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined"
+    ],
+
+    // Bring the host's git identity into the container so git "just works"
+    // exactly as it does on the host: SSH keys + global git config.
+    //
+    // The ${localEnv:HOME}${localEnv:USERPROFILE} concatenation is the standard
+    // cross-platform home-dir trick: on Linux/macOS HOME is set (USERPROFILE
+    // empty), on Windows USERPROFILE is set (HOME empty), so exactly one wins.
+    //
+    // Both are mounted read-only to *-host paths; postCreate.sh copies them
+    // into /root/.ssh and /root/.gitconfig with the correct permissions.
+    // initializeCommand creates missing host paths automatically.
+    "mounts": [
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh-host,type=bind,readonly",
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.gitconfig,target=/root/.gitconfig-host,type=bind,readonly",
+
+        // Share the HOST's Claude Code config with the container so it (a)
+        // survives a container rebuild and (b) stays identical to the Claude
+        // config used by VS Code on the host: login/credentials, settings,
+        // MCP servers and project history are the same files on both sides.
+        //
+        // Missing host paths are auto-created by initializeCommand. If you have
+        // already run Claude Code on the host, they typically already exist:
+        //   %USERPROFILE%\.claude\        (directory)
+        //   %USERPROFILE%\.claude.json    (file)
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude,target=/root/.claude,type=bind,consistency=cached",
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.claude.json,target=/root/.claude.json,type=bind,consistency=cached"
+    ],
+
+    // VS Code customizations applied inside the container.
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-extension-pack",
+                "ms-vscode.cmake-tools",
+                "twxs.cmake",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "anthropic.claude-code"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "cmake.generator": "Ninja",
+                "C_Cpp.default.compilerPath": "/usr/bin/g++",
+                "C_Cpp.default.cppStandard": "c++23",
+                "C_Cpp.default.intelliSenseMode": "linux-gcc-x64"
+            }
+        }
+    },
+
+    // Install host git identity, then print toolchain versions.
+    "postCreateCommand": "bash .devcontainer/postCreate.sh",
+
+    // Run as root (matches the Dockerfile). Change to a non-root user if desired.
+    "remoteUser": "root"
+}

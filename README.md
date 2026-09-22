@@ -61,6 +61,33 @@ You can also run the guided script:
 bash QUICKSTART.sh
 ```
 
+## Benchmark
+
+Build and run the matching-engine latency benchmark in Release mode:
+
+```bash
+cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release \
+  -DMATCHING_ENGINE_BUILD_BENCHMARKS=ON
+cmake --build build-release --target matching_engine_latency_benchmark
+./build-release/release/bin/matching_engine_latency_benchmark
+```
+
+The benchmark warms up the engine, then measures 100,000 complete add → match
+→ cancel cycles. It also counts calls to global `new` only during the measured
+loop, to detect heap allocations in the matching path.
+
+Example result from this environment:
+
+```text
+Matching cycle latency (add + match + cancel), 100000 iterations
+p50: 125 ns
+p99: 167 ns
+Heap allocations during measured loop: 0
+```
+
+Latency depends on the host and build settings. The measurement excludes line
+parsing, CSV formatting, and console I/O.
+
 ## Compile and Debug (VS Code)
 
 - Press F5 and choose `gdb: matching_engine_app`.

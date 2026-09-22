@@ -29,8 +29,8 @@ namespace {
 using Price = long double;
 using OrderId = std::uint64_t;
 using Quantity = std::uint64_t;
-inline constexpr std::size_t kMaxRestingOrders = 4096U;
-inline constexpr std::size_t kMaxPriceLevels = 1024U;
+inline constexpr std::size_t kMaxRestingOrders = 6553600U;
+inline constexpr std::size_t kMaxPriceLevels = 16384U;
 using Level = std::list<OrderId, FixedPoolAllocator<OrderId, kMaxRestingOrders>>;
 using BookValue = std::pair<const Price, Level>;
 using BidBook = std::map<Price, Level, std::greater<Price>,
@@ -70,6 +70,10 @@ struct MatchingEngine::Impl final {
     OrderMap orders;
     BidBook bids;
     AskBook asks;
+    Impl() : orders{}, bids{}, asks{} 
+    {
+        orders.reserve(10240U);
+    }
 };
 
 MatchingEngine::Impl& MatchingEngine::state() {

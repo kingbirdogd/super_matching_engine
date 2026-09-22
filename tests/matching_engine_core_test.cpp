@@ -1,7 +1,10 @@
 #include <matching_engine_core/matching_engine.hpp>
+#include <matching_engine_core/fixed_pool_allocator.hpp>
 
 #include <gtest/gtest.h>
 
+#include <list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -9,6 +12,7 @@ namespace {
 
 using matching_engine::AddOrderRequest;
 using matching_engine::CancelOrderRequest;
+using matching_engine::FixedPoolAllocator;
 using matching_engine::MatchingEngine;
 using matching_engine::ProcessResult;
 using matching_engine::Side;
@@ -30,6 +34,35 @@ protected:
 
     MatchingEngine engine;
 };
+
+TEST(FixedPoolAllocatorTest, ReusesFixedFlatStorageOneObjectAtATime) {
+    FixedPoolAllocator<int, 2> allocator;
+    int* first = std::allocator_traits<decltype(allocator)>::allocate(allocator, 1U);
+    int* second = std::allocator_traits<decltype(allocator)>::allocate(allocator, 1U);
+
+    EXPECT_THROW((void)std::allocator_traits<decltype(allocator)>::allocate(allocator, 1U),
+                 std::bad_alloc);
+    EXPECT_THROW((void)std::allocator_traits<decltype(allocator)>::allocate(allocator, 2U),
+                 std::bad_alloc);
+
+    std::allocator_traits<decltype(allocator)>::deallocate(allocator, first, 1U);
+    int* reused = std::allocator_traits<decltype(allocator)>::allocate(allocator, 1U);
+    EXPECT_EQ(reused, first);
+
+    std::allocator_traits<decltype(allocator)>::deallocate(allocator, second, 1U);
+    std::allocator_traits<decltype(allocator)>::deallocate(allocator, reused, 1U);
+}
+
+TEST(FixedPoolAllocatorTest, SupportsStlNodeContainerAllocation) {
+    std::list<int, FixedPoolAllocator<int, 3>> values;
+    values.push_back(10);
+    values.push_back(20);
+    values.push_back(30);
+
+    EXPECT_EQ((std::vector<int>{values.begin(), values.end()}),
+              (std::vector<int>{10, 20, 30}));
+    EXPECT_THROW(values.push_back(40), std::bad_alloc);
+}
 
 TEST_F(MatchingEngineCoreTest, RejectsInvalidAddRequests) {
     EXPECT_EQ(engine.handle_add_request(AddOrderRequest{0, Side::Buy, 1, 100.0L}).errors[0],

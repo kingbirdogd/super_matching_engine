@@ -3,7 +3,7 @@
 # Latest Ubuntu as the base image.
 FROM ubuntu:latest
 
-LABEL description="Modern C++ development environment (recent GCC/G++, Make, CMake, GDB)"
+LABEL description="Modern C++ development environment (recent GCC/G++, Make, CMake, GDB, clangd)"
 
 # Avoid interactive prompts during package installation.
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -78,6 +78,7 @@ RUN set -eux; \
     echo "Installing GCC/G++ version: ${GCC_VER}"; \
     apt-get install -y --no-install-recommends \
         build-essential \
+        clangd \
         make \
         cmake \
         gdb \
@@ -105,7 +106,8 @@ RUN set -eux; \
     g++ --version; \
     make --version; \
     cmake --version; \
-    gdb --version
+    gdb --version; \
+    clangd --version
 
 # ---------------------------------------------------------------------------
 # 4. debuginfod: DISABLED by default.

@@ -1,5 +1,6 @@
 #include <matching_engine_core/add_order_request.hpp>
 #include <matching_engine_core/cancel_order_request.hpp>
+#include <matching_engine_core/huge_page.hpp>
 #include <matching_engine_core/matching_engine.hpp>
 #include <matching_engine_core/output_message.hpp>
 #include <matching_engine_core/output_type.hpp>
@@ -57,6 +58,9 @@ struct MatchingEngine::Impl final {
 };
 
 MatchingEngine::Impl& MatchingEngine::state() {
+    // This reference keeps the startup HugeTLB object linked when the core is
+    // consumed as a static library.  Its constructor attribute runs before main().
+    (void)huge_page_reservation();
     static Impl value;
     return value;
 }

@@ -1,5 +1,6 @@
 #include <matching_engine_core/matching_engine.hpp>
 #include <matching_engine_core/fixed_pool_allocator.hpp>
+#include <matching_engine_core/huge_page.hpp>
 
 #include <gtest/gtest.h>
 
@@ -62,6 +63,11 @@ TEST(FixedPoolAllocatorTest, SupportsStlNodeContainerAllocation) {
     EXPECT_EQ((std::vector<int>{values.begin(), values.end()}),
               (std::vector<int>{10, 20, 30}));
     EXPECT_THROW(values.push_back(40), std::bad_alloc);
+}
+
+TEST(HugePageReservationTest, ReportsAConsistentStartupReservationStatus) {
+    const auto reservation = matching_engine::huge_page_reservation();
+    EXPECT_EQ(reservation.size_bytes == 0U, !reservation.is_reserved);
 }
 
 TEST_F(MatchingEngineCoreTest, RejectsInvalidAddRequests) {

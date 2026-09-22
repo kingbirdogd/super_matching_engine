@@ -10,12 +10,10 @@ namespace matching_engine {
 
 /// A fixed-capacity allocator for STL node-based containers.
 ///
-/// Storage is one contiguous, statically allocated array of slots.  Every
-/// allocation and deallocation must be for exactly one object.  Consequently,
-/// this allocator is suitable for containers such as std::list, std::map, and
-/// std::unordered_map, but not std::vector (which requests blocks of objects
-/// when it grows).  The pool is shared by all allocator instances with the
-/// same T and Capacity and is not thread-safe.
+/// Storage is one contiguous, statically allocated array of slots.  It can
+/// serve both individual nodes and contiguous blocks, so it is suitable for
+/// node-based containers as well as std::vector.  The pool is shared by all
+/// allocator instances with the same T and Capacity and is not thread-safe.
 template <typename T, std::size_t Capacity>
 class FixedPoolAllocator {
     static_assert(Capacity > 0U, "FixedPoolAllocator capacity must be positive");
@@ -36,19 +34,16 @@ public:
     FixedPoolAllocator(const FixedPoolAllocator<U, Capacity>&) noexcept {}
 
     [[nodiscard]] T* allocate(size_type count) {
-        if (count != 1U || pool_.available == 0U) {
+        if (count == 0U || count > pool_.available) {
             throw std::bad_alloc{};
         }
 
-        const size_type slot_index = pool_.free_slots[--pool_.available];
-        assert(!pool_.in_use[slot_index]);
-        pool_.in_use[slot_index] = true;
-        return pool_.pointer_at(slot_index);
+        return pool_.acquire(count);
     }
 
     void deallocate(T* pointer, size_type count) noexcept {
-        assert(count == 1U);
-        pool_.release(pointer);
+        assert(count > 0U);
+        pool_.release(pointer, count);
     }
 
     [[nodiscard]] constexpr bool operator==(const FixedPoolAllocator&) const noexcept {
@@ -62,26 +57,39 @@ private:
 
     struct Pool {
         std::array<Slot, Capacity> slots{};
-        std::array<size_type, Capacity> free_slots{};
         std::array<bool, Capacity> in_use{};
         size_type available{Capacity};
 
-        Pool() noexcept {
+        [[nodiscard]] T* acquire(size_type count) {
+            size_type consecutive = 0U;
             for (size_type index = 0U; index < Capacity; ++index) {
-                free_slots[index] = index;
+                consecutive = in_use[index] ? 0U : consecutive + 1U;
+                if (consecutive == count) {
+                    const size_type first = index + 1U - count;
+                    for (size_type slot = first; slot <= index; ++slot) {
+                        in_use[slot] = true;
+                    }
+                    available -= count;
+                    return pointer_at(first);
+                }
             }
+
+            throw std::bad_alloc{};
         }
 
         [[nodiscard]] T* pointer_at(size_type index) noexcept {
             return std::launder(reinterpret_cast<T*>(slots[index].bytes));
         }
 
-        void release(T* pointer) noexcept {
+        void release(T* pointer, size_type count) noexcept {
             for (size_type index = 0U; index < Capacity; ++index) {
                 if (pointer == pointer_at(index)) {
-                    assert(in_use[index]);
-                    in_use[index] = false;
-                    free_slots[available++] = index;
+                    assert(index + count <= Capacity);
+                    for (size_type slot = index; slot < index + count; ++slot) {
+                        assert(in_use[slot]);
+                        in_use[slot] = false;
+                    }
+                    available += count;
                     return;
                 }
             }

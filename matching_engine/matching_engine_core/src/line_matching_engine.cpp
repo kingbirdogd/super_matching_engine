@@ -23,8 +23,8 @@ std::string_view LineMatchingEngine::trim(std::string_view value) {
     return value;
 }
 
-std::vector<std::string_view> LineMatchingEngine::split_csv(std::string_view line) {
-    std::vector<std::string_view> fields;
+LineMatchingEngine::CsvFields LineMatchingEngine::split_csv(std::string_view line) {
+    CsvFields fields;
     std::size_t start = 0;
     while (start <= line.size()) {
         const std::size_t comma = line.find(',', start);

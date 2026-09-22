@@ -1,11 +1,17 @@
 #include <matching_engine_core/add_order_request.hpp>
 #include <matching_engine_core/cancel_order_request.hpp>
+#include <matching_engine_core/fixed_pool_allocator.hpp>
 #include <matching_engine_core/huge_page.hpp>
 #include <matching_engine_core/matching_engine.hpp>
 #include <matching_engine_core/output_message.hpp>
 #include <matching_engine_core/output_type.hpp>
 #include <matching_engine_core/process_result.hpp>
 #include <matching_engine_core/side.hpp>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
+#include <absl/container/flat_hash_map.h>
+#pragma GCC diagnostic pop
 
 #include <algorithm>
 #include <cmath>
@@ -14,7 +20,6 @@
 #include <map>
 #include <sstream>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 namespace matching_engine {
@@ -24,9 +29,14 @@ namespace {
 using Price = long double;
 using OrderId = std::uint64_t;
 using Quantity = std::uint64_t;
-using Level = std::list<OrderId>;
-using BidBook = std::map<Price, Level, std::greater<Price>>;
-using AskBook = std::map<Price, Level, std::less<Price>>;
+inline constexpr std::size_t kMaxRestingOrders = 4096U;
+inline constexpr std::size_t kMaxPriceLevels = 1024U;
+using Level = std::list<OrderId, FixedPoolAllocator<OrderId, kMaxRestingOrders>>;
+using BookValue = std::pair<const Price, Level>;
+using BidBook = std::map<Price, Level, std::greater<Price>,
+                         FixedPoolAllocator<BookValue, kMaxPriceLevels>>;
+using AskBook = std::map<Price, Level, std::less<Price>,
+                         FixedPoolAllocator<BookValue, kMaxPriceLevels>>;
 
 struct EngineOrder {
     OrderId id{0};
@@ -35,6 +45,11 @@ struct EngineOrder {
     Price price{0.0L};
     Level::iterator level_it{};
 };
+
+using OrderMapValue = std::pair<const OrderId, EngineOrder>;
+using OrderMap = absl::flat_hash_map<
+    OrderId, EngineOrder, absl::Hash<OrderId>, std::equal_to<OrderId>,
+    FixedPoolAllocator<OrderMapValue, kMaxRestingOrders>>;
 
 std::string format_price_value(long double value) {
     std::ostringstream out;
@@ -52,7 +67,7 @@ std::string format_price_value(long double value) {
 }  // namespace
 
 struct MatchingEngine::Impl final {
-    std::unordered_map<OrderId, EngineOrder> orders;
+    OrderMap orders;
     BidBook bids;
     AskBook asks;
 };

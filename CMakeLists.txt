@@ -19,3 +19,8 @@ add_subdirectory(matching_engine)
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
+
+option(MATCHING_ENGINE_BUILD_BENCHMARKS "Build matching-engine latency benchmarks" OFF)
+if(MATCHING_ENGINE_BUILD_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()

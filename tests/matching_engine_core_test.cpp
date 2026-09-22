@@ -54,6 +54,16 @@ TEST(FixedPoolAllocatorTest, ReusesFixedFlatStorageOneObjectAtATime) {
     std::allocator_traits<decltype(allocator)>::deallocate(allocator, reused, 1U);
 }
 
+TEST(FixedPoolAllocatorTest, SupportsContiguousAllocationForVectorGrowth) {
+    std::vector<int, FixedPoolAllocator<int, 8>> values;
+    values.push_back(10);
+    values.push_back(20);
+    values.push_back(30);
+
+    EXPECT_EQ((std::vector<int>{values.begin(), values.end()}),
+              (std::vector<int>{10, 20, 30}));
+}
+
 TEST(FixedPoolAllocatorTest, SupportsStlNodeContainerAllocation) {
     std::list<int, FixedPoolAllocator<int, 3>> values;
     values.push_back(10);
